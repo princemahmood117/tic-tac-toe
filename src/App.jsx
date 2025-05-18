@@ -12,6 +12,7 @@ Game
 */
 
 import { useState } from "react";
+import History from "./History";
 
 function Square({value,onSquareClick}) {
 
@@ -22,12 +23,12 @@ function Square({value,onSquareClick}) {
      )
 }
  
+// BOARD section
+function Board({handlePlay,squares,isXNext}) {
+  // const [squares,setSquares] = useState([Array(9).fill(null)])  // ৯ টা অ্যারে সেখানের সবগুলায় ডিফল্ট মান 'Null' যা শর্তের ভিত্তিতে চেঞ্জ হয়ে X/O শো করবে
 
-function Board() {
+  // const [isXNext,setIsXNext] = useState(true)
 
-  const [squares,setSquares] = useState(Array(9).fill(null))  // ৯ টা অ্যারে সেখানের সবগুলায় ডিফল্ট মান 'Null' যা শর্তের ভিত্তিতে চেঞ্জ হয়ে X/O শো করবে
-
-  const [isXNext,setIsXNext] = useState(true)
 
   const winner = calculateWinner(squares);
   let status;
@@ -55,34 +56,13 @@ function Board() {
     else {
       nextSquares[i] = 'O'
     }
-    setSquares(nextSquares)
-    setIsXNext(!isXNext)
+    // setSquares(nextSquares)
+    // setIsXNext(!isXNext)
+
+    handlePlay(nextSquares)
 
   }
 
-
-  function calculateWinner(squares) {
-    const lines = [
-      [0,1,2],
-      [3,4,5],
-      [6,7,8],
-      [0,3,6],
-      [1,4,7],
-      [2,5,8],
-      [0,4,8],
-      [2,4,6],
-    ]
-
-    for(let i = 0; i < lines.length; i++) {
-      const [a,b,c] = lines[i]
-
-      if(squares[a] && squares[a] === squares[b] && squares[a] === squares[c])
-      {
-        return squares[a]  // winner is found
-      }
-    }
-    return null; // returns null if the winner is not found
-  }
   
   return (
     <div className="text-center cursor-pointer">
@@ -111,4 +91,88 @@ function Board() {
   )
 }
 
-export default Board
+
+// this is the main component of the project
+ export default function Game() {
+  
+  const [history,setHistory] = useState([Array(9).fill(null)])  // ৯ টা অ্যারে সেখানের সবগুলায় ডিফল্ট মান 'Null' যা শর্তের ভিত্তিতে চেঞ্জ হয়ে X/O শো করবে
+
+  const [isXNext,setIsXNext] = useState(true)
+
+  const [currentMove,setCurrentMove] = useState(0)
+
+  const currentSquare = history[currentMove]
+
+
+  function handlePlay (nextSquares) {
+    setIsXNext(!isXNext)
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares]
+    setHistory(nextHistory)
+    setCurrentMove(nextHistory.length - 1)
+  }
+
+  function jumpTo(move) {
+    setCurrentMove(move)
+    setIsXNext(move % 2 === 0)
+  }
+
+  const moves = history.map((squares,move) => {
+    let description;
+
+    if(move > 0) {
+      description = `Go to the move # ${move}`
+    }
+    else {
+      description = `Make your first move`
+    }
+
+    return (
+      <li key = {move} className="text-center my-3 border border-gray-200 w-[50%] flex justify-center items-center mx-auto rounded hover:bg-gray-200 p-3 transition-all duration-200 ">
+        <button onClick={()=> jumpTo(move)}>{description}</button>
+      </li>
+    )
+  })
+
+    return (
+      <div>
+        <div>
+            <Board isXNext={isXNext} squares={currentSquare} handlePlay={handlePlay}></Board>
+        </div>
+
+        {/* <div>
+          <ol>{moves}</ol>
+        </div> */}
+
+          {/* made an history component to pass the moves as props */}
+        <div>
+          <History moves={moves}></History>
+        </div>
+      </div>
+    )
+  }
+
+
+// WINNER section
+  function calculateWinner(squares) {
+    const lines = [
+      [0,1,2],
+      [3,4,5],
+      [6,7,8],
+      [0,3,6],
+      [1,4,7],
+      [2,5,8],
+      [0,4,8],
+      [2,4,6],
+    ]
+
+    for(let i = 0; i < lines.length; i++) {
+      const [a,b,c] = lines[i]
+
+      if(squares[a] && squares[a] === squares[b] && squares[a] === squares[c])
+      {
+        return squares[a]  // winner is found
+      }
+    }
+    return null; // returns null if the winner is not found
+  }
+
